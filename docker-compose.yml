@@ -1,10 +1,39 @@
-version: '3'
 services:
   postgres:
-    image: 'postgres:9.6.1'
-    ports:
-      - '5432:5432'
+    image: 'postgres:13-alpine'
     environment:
-      POSTGRES_USER: 'test'
-      POSTGRES_PASSWORD: 'test'
-      POSTGRES_DB: 'test'
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_HOST_PORT}:${DB_PORT}"
+    networks:
+      - docker-network
+    volumes:
+      - db_data:/var/lib/postgresql/data
+  api:
+    build:
+      context: .
+    environment:
+      API_PORT: ${API_PORT}
+      TYPEORM_CONNECTION: ${TYPEORM_CONNECTION}
+      TYPEORM_HOST: postgres  
+      TYPEORM_USERNAME: ${DB_USERNAME}
+      TYPEORM_PASSWORD: ${DB_PASSWORD}
+      TYPEORM_DATABASE: ${DB_NAME}
+      TYPEORM_PORT: ${DB_PORT}
+      TYPEORM_SYNCHRONIZE: ${TYPEORM_SYNCHRONIZE}
+      TYPEORM_LOGGING: ${TYPEORM_LOGGING}
+      TYPEORM_ENTITIES: ${TYPEORM_ENTITIES}
+    depends_on:
+      - postgres
+    networks:
+      - docker-network
+    ports:
+      - "3000:3000"  
+
+networks:
+  docker-network:
+
+volumes:
+  db_data:
